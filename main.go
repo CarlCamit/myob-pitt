@@ -8,10 +8,15 @@ import (
 
 func main() {
 	router := http.NewServeMux()
-	handler := func(w http.ResponseWriter, r *http.Request) {
+	root := func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "hello world\r\n")
 	}
-	router.Handle("/", http.HandlerFunc(handler))
+	health := func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}
+
+	router.Handle("/health", http.HandlerFunc(health))
+	router.Handle("/", http.HandlerFunc(root))
 
 	port := ":8080"
 	srv := &http.Server{

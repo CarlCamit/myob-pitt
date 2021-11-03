@@ -6,7 +6,8 @@ import (
 )
 
 var (
-	repoPath = "repos/carlcamit/myob-pitt"
+	repoPath   = "repos/carlcamit/myob-pitt"
+	commitPath = "/commits/main"
 
 	// Github API encourages making requests
 	// with this Accept header
@@ -77,4 +78,31 @@ func (c *Client) GetDescription() (string, error) {
 	}
 
 	return repo.Description, nil
+}
+
+type Commit struct {
+	SHA string `json:"sha"`
+}
+
+func (c *Client) GetLatestSHA() (string, error) {
+	url := c.hostURL + repoPath + commitPath
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set("Accept", HeaderAccept)
+
+	res, err := c.client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+
+	var commit Commit
+	if err := json.NewDecoder(res.Body).Decode(&commit); err != nil {
+		return "", err
+	}
+
+	return commit.SHA, nil
 }

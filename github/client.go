@@ -1,14 +1,19 @@
 package github
 
 import (
+	"encoding/json"
 	"net/http"
 )
 
-// Github API encourages making requests
-// with this Accept header
-//
-// https://docs.github.com/en/rest/overview/media-types#request-specific-version
-var HeaderAccept = "application/vnd.github.v3+json"
+var (
+	repoPath = "repos/carlcamit/myob-pitt"
+
+	// Github API encourages making requests
+	// with this Accept header
+	//
+	// https://docs.github.com/en/rest/overview/media-types#request-specific-version
+	HeaderAccept = "application/vnd.github.v3+json"
+)
 
 // Client specifies the settings for
 // communicating with the API
@@ -45,4 +50,31 @@ func (c *Client) CheckStatus() (int, error) {
 	}
 
 	return res.StatusCode, nil
+}
+
+type Repository struct {
+	Description string `json:"description"`
+}
+
+func (c *Client) GetDescription() (string, error) {
+	url := c.hostURL + repoPath
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set("Accept", HeaderAccept)
+
+	res, err := c.client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+
+	var repo Repository
+	if err := json.NewDecoder(res.Body).Decode(&repo); err != nil {
+		return "", err
+	}
+
+	return repo.Description, nil
 }

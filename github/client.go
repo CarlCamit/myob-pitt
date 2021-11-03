@@ -34,6 +34,10 @@ func NewClient(hostURL string) *Client {
 	}
 }
 
+type Checker interface {
+	CheckStatus() (int, error)
+}
+
 // CheckStatus checks the availability of the
 // Github API so that the health endpoint
 // can respond appropriately
@@ -51,6 +55,11 @@ func (c *Client) CheckStatus() (int, error) {
 	}
 
 	return res.StatusCode, nil
+}
+
+type Getter interface {
+	GetDescription() (string, error)
+	GetLatestSHA() (string, error)
 }
 
 type Repository struct {

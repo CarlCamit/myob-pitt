@@ -1,22 +1,22 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/carlcamit/myob-pitt/github"
+	"github.com/carlcamit/myob-pitt/handler"
 )
 
-func main() {
-	router := http.NewServeMux()
-	root := func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "hello world\r\n")
-	}
-	health := func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}
+var baseURL = "https://api.github.com"
 
-	router.Handle("/health", http.HandlerFunc(health))
-	router.Handle("/", http.HandlerFunc(root))
+func main() {
+	client := github.NewClient(baseURL)
+
+	router := http.NewServeMux()
+	router.Handle("/health", http.HandlerFunc(handler.Health(client)))
+	router.Handle("/metadata", http.HandlerFunc(handler.Metadata(client)))
+	router.Handle("/", http.HandlerFunc(handler.Root()))
 
 	port := ":8080"
 	srv := &http.Server{

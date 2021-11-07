@@ -2,11 +2,13 @@ package github
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
 var (
-	repoPath   = "repos/carlcamit/myob-pitt"
+	statusPath = "/"
+	repoPath   = "/repos/carlcamit/myob-pitt"
 	commitPath = "/commits/main"
 
 	// Github API encourages making requests
@@ -42,7 +44,8 @@ type Checker interface {
 // Github API so that the health endpoint
 // can respond appropriately
 func (c *Client) CheckStatus() (int, error) {
-	req, err := http.NewRequest(http.MethodGet, c.hostURL, nil)
+	url := c.hostURL + statusPath
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return 0, err
 	}
@@ -81,6 +84,10 @@ func (c *Client) GetDescription() (string, error) {
 	}
 	defer res.Body.Close()
 
+	if res.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("cannot get description received a %v", res.StatusCode)
+	}
+
 	var repo Repository
 	if err := json.NewDecoder(res.Body).Decode(&repo); err != nil {
 		return "", err
@@ -107,6 +114,10 @@ func (c *Client) GetLatestSHA() (string, error) {
 		return "", err
 	}
 	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("cannot get latest sha received a %v", res.StatusCode)
+	}
 
 	var commit Commit
 	if err := json.NewDecoder(res.Body).Decode(&commit); err != nil {
